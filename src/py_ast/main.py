@@ -22,7 +22,7 @@ def main():
 
         webview.create_window(
             title="py-ast | Compiler & AST Visualizer",
-            url="http://127.0.0.1:8000/docs",
+            url="http://127.0.0.1:8000",
             width=1200,
             height=800,
         )

@@ -55,6 +55,7 @@ class SymbolTableDTO(BaseModel):
 
 class ParseRequest(BaseModel):
     code: str
+    mode: str = "ast"
 
 
 class ParseAnalysisResponse(BaseModel):

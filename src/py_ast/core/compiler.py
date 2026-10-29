@@ -138,7 +138,7 @@ class ASTToPythonTransformer(Transformer):
 
 class CompilerPipeline:
     def __init__(self, grammar: str = EBNF_GRAMMAR) -> None:
-        self.parser = Lark(grammar, parser="lalr")
+        self.parser = Lark(grammar, parser="lalr", propagate_positions=True)
         self.transformer = ASTToPythonTransformer()
         self.semantic_analyzer = SemanticAnalyzer()
 
@@ -234,12 +234,167 @@ class CompilerPipeline:
     def generate_python(self, parse_tree: Any) -> str:
         return self.transformer.transform(parse_tree)
 
+    def _extract_node_span(self, node: Any) -> dict[str, int]:
+        line: int | None = None
+        column: int | None = None
+        end_line: int | None = None
+        end_column: int | None = None
+
+        if hasattr(node, "meta") and node.meta is not None:
+            line = getattr(node.meta, "line", None)
+            column = getattr(node.meta, "column", None)
+            end_line = getattr(node.meta, "end_line", None)
+            end_column = getattr(node.meta, "end_column", None)
+
+        if line is None and hasattr(node, "line"):
+            line = getattr(node, "line", None)
+            column = getattr(node, "column", None)
+            end_line = getattr(node, "end_line", None)
+            end_column = getattr(node, "end_column", None)
+
+        if (
+            (line is None or column is None)
+            and hasattr(node, "children")
+            and node.children
+        ):
+            child_spans = [
+                self._extract_node_span(c) for c in node.children if c is not None
+            ]
+            valid_spans = [s for s in child_spans if s.get("line") is not None]
+            if valid_spans:
+                line = min(s["line"] for s in valid_spans)
+                column = min(s["column"] for s in valid_spans if s["line"] == line)
+                end_line = max(s["end_line"] for s in valid_spans)
+                end_column = max(
+                    s["end_column"] for s in valid_spans if s["end_line"] == end_line
+                )
+
+        resolved_line = line if line is not None else 1
+        resolved_column = column if column is not None else 1
+        resolved_end_line = end_line if end_line is not None else resolved_line
+        val_str = str(getattr(node, "value", str(node)))
+        resolved_end_column = (
+            end_column
+            if end_column is not None
+            else (resolved_column + max(1, len(val_str)))
+        )
+
+        return {
+            "line": resolved_line,
+            "column": resolved_column,
+            "start_line": resolved_line,
+            "start_column": resolved_column,
+            "end_line": resolved_end_line,
+            "end_column": resolved_end_column,
+        }
+
+    def _categorize_node(
+        self,
+        node: Any,
+        label: str,
+        span: dict[str, int],
+        diagnostics: list[CompilerDiagnostic] | None = None,
+    ) -> str:
+        if getattr(node, "type", "") == "ERROR" or getattr(node, "data", "") == "error":
+            return "error"
+        if (
+            "error" in label.lower()
+            or "error" in str(getattr(node, "data", "")).lower()
+        ):
+            return "error"
+        if diagnostics:
+            for d in diagnostics:
+                if (
+                    d.severity == "error"
+                    and d.line is not None
+                    and d.line == span["line"]
+                    and (
+                        d.column is None
+                        or (span["column"] <= d.column <= span["end_column"])
+                    )
+                ):
+                    return "error"
+
+        node_type = str(getattr(node, "type", "")).upper()
+        node_data = str(getattr(node, "data", "")).lower()
+        lbl_lower = label.lower()
+
+        if node_type in ("IDENTIFIER", "CNAME") or node_data in (
+            "variable",
+            "identifier",
+            "type_spec",
+        ):
+            return "identifier"
+        if lbl_lower in ("identifier", "variable", "type_spec"):
+            return "identifier"
+
+        expr_rules = {
+            "expr",
+            "comparison",
+            "arith_expr",
+            "term",
+            "atom",
+            "add",
+            "sub",
+            "mul",
+            "div",
+            "eq",
+            "ne",
+            "number",
+            "boolean",
+        }
+        if node_data in expr_rules:
+            return "expression"
+        if node_type in (
+            "NUMBER",
+            "BOOLEAN",
+            "PLUS",
+            "MINUS",
+            "STAR",
+            "SLASH",
+            "EQ",
+            "NE",
+        ):
+            return "expression"
+        if lbl_lower in expr_rules or label.isdigit() or lbl_lower in ("true", "false"):
+            return "expression"
+
+        cf_rules = {
+            "start",
+            "statement",
+            "var_decl",
+            "assign_stmt",
+            "print_stmt",
+            "if_stmt",
+            "block",
+            "branch",
+        }
+        if node_data in cf_rules or node_type in (
+            "IF",
+            "ELSE",
+            "VAR",
+            "LET",
+            "PRINT",
+            "BLOCK",
+        ):
+            return "control_flow"
+        if lbl_lower in cf_rules or lbl_lower in ("if", "else"):
+            return "control_flow"
+
+        if isinstance(node, str) and node.isidentifier():
+            return "identifier"
+
+        return "control_flow"
+
     def export_cytoscape_json(
         self,
         node: Any,
         parent_id: str | None = None,
         elements: list[dict[str, Any]] | None = None,
         counter: list[int] | None = None,
+        mode: str = "ast",
+        filter_ast: bool | None = None,
+        diagnostics: list[CompilerDiagnostic] | None = None,
     ) -> list[dict[str, Any]]:
         if elements is None:
             elements = []
@@ -248,22 +403,101 @@ class CompilerPipeline:
         if node is None:
             return elements
 
+        if filter_ast is not None:
+            mode = "ast" if filter_ast else "cst"
+        mode = mode.lower()
+
         current_id = str(counter[0])
         counter[0] += 1
 
+        # AST Mode Filtering: collapse trivial wrapper nodes (e.g. number -> 10, variable -> x)
+        if mode == "ast" and hasattr(node, "data") and hasattr(node, "children"):
+            if (
+                node.data in ("number", "boolean", "variable")
+                and len(node.children) == 1
+            ):
+                child = node.children[0]
+                child_label = str(getattr(child, "value", child))
+                span = self._extract_node_span(child)
+                category = (
+                    "expression" if node.data in ("number", "boolean") else "identifier"
+                )
+                if diagnostics:
+                    for d in diagnostics:
+                        if d.severity == "error" and d.line == span["line"]:
+                            category = "error"
+                            break
+
+                elements.append(
+                    {
+                        "data": {
+                            "id": current_id,
+                            "label": child_label,
+                            "category": category,
+                            "span": span,
+                        }
+                    }
+                )
+                if parent_id is not None:
+                    elements.append(
+                        {"data": {"source": parent_id, "target": current_id}}
+                    )
+                return elements
+
+            if node.data == "type_spec" and len(node.children) == 1:
+                child = node.children[0]
+                child_label = f": {getattr(child, 'value', child)}"
+                span = self._extract_node_span(child)
+                category = self._categorize_node(child, child_label, span, diagnostics)
+                elements.append(
+                    {
+                        "data": {
+                            "id": current_id,
+                            "label": child_label,
+                            "category": category,
+                            "span": span,
+                        }
+                    }
+                )
+                if parent_id is not None:
+                    elements.append(
+                        {"data": {"source": parent_id, "target": current_id}}
+                    )
+                return elements
+
         label = node.data if hasattr(node, "data") else str(node)
-        elements.append({"data": {"id": current_id, "label": str(label)}})
+        span = self._extract_node_span(node)
+        category = self._categorize_node(node, str(label), span, diagnostics)
+
+        elements.append(
+            {
+                "data": {
+                    "id": current_id,
+                    "label": str(label),
+                    "category": category,
+                    "span": span,
+                }
+            }
+        )
 
         if parent_id is not None:
             elements.append({"data": {"source": parent_id, "target": current_id}})
 
         if hasattr(node, "children"):
             for child in node.children:
-                self.export_cytoscape_json(child, current_id, elements, counter)
+                self.export_cytoscape_json(
+                    child,
+                    parent_id=current_id,
+                    elements=elements,
+                    counter=counter,
+                    mode=mode,
+                    filter_ast=filter_ast,
+                    diagnostics=diagnostics,
+                )
 
         return elements
 
-    def compile(self, code: str) -> ParseAnalysisResponse:
+    def compile(self, code: str, mode: str = "ast") -> ParseAnalysisResponse:
         tokens = self.extract_tokens(code)
         tree, diagnostics = self.safe_parse(code)
 
@@ -279,9 +513,9 @@ class CompilerPipeline:
                         code="CODEGEN_ERROR",
                     )
                 )
-            graph = self.export_cytoscape_json(tree)
             symbol_table, semantic_diags = self.semantic_analyzer.analyze(tree)
             diagnostics.extend(semantic_diags)
+            graph = self.export_cytoscape_json(tree, mode=mode, diagnostics=diagnostics)
             return ParseAnalysisResponse(
                 tokens=tokens,
                 generated_python=python_code,
