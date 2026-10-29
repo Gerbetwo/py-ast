@@ -10,8 +10,9 @@ dist/
 build/
 *.egg-info/
 .DS_Store
-
-*.txt
+!requirements.txt
+code*.txt
+context*.txt
 repomix-output.md
 repomix-output.xml
 script.py

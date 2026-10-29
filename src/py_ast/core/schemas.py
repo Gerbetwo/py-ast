@@ -41,7 +41,7 @@ class SymbolTableDTO(BaseModel):
     scope_level: int = 0
     parent_scope: str | None = None
     symbols: dict[str, SymbolDTO] = Field(default_factory=dict)
-    children: list["SymbolTableDTO"] = Field(default_factory=list)
+    children: list[SymbolTableDTO] = Field(default_factory=list)
 
     def get_symbol(self, name: str) -> SymbolDTO | None:
         return self.symbols.get(name)
