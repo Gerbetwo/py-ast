@@ -5,7 +5,7 @@ description = "Add your description here"
 authors = [
     { name = "Daniel Alejandro Lasso Molina", email = "lassomoluna9@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.110.0",
     "lark>=1.1.9",
