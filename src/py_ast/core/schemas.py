@@ -68,3 +68,21 @@ class ParseAnalysisResponse(BaseModel):
     @property
     def has_errors(self) -> bool:
         return any(d.severity == "error" for d in self.diagnostics)
+
+
+class MutateNodeRequest(BaseModel):
+    node_id: str
+    new_value: str
+    code: str
+    mode: str = "ast"
+
+
+class MutateNodeResponse(BaseModel):
+    code: str
+    cytoscape_graph: list[dict[str, Any]] = Field(default_factory=list)
+    generated_python: str = ""
+    symbol_table: SymbolTableDTO | None = None
+    diagnostics: list[CompilerDiagnostic] = Field(default_factory=list)
+    warning: str | None = None
+    warnings: list[str] = Field(default_factory=list)
+    success: bool = True
