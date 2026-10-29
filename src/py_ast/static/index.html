@@ -395,17 +395,21 @@
     </div>
 
     <div class="toolbar-group">
-      <select id="example-select" class="select-dropdown" aria-label="Example programs">
-        <option value="basic">1. Basic Assignment & Math</option>
-        <option value="control_flow" selected>2. If-Else Control Flow</option>
-        <option value="typed_vars">3. Typed Declarations & Scopes</option>
-        <option value="error_syntax">4. Syntax Error Sample</option>
-        <option value="error_semantic">5. Semantic Error (Undeclared)</option>
+      <select id="example-select" class="select-dropdown preset-dropdown" data-testid="preset-dropdown" aria-label="Example programs">
+        <option value="arithmetic" selected>Arithmetic Evaluator</option>
+        <option value="variable_binding">Variable Binding</option>
+        <option value="conditional_logic">Conditional Logic</option>
+        <option value="basic">Basic Assignment &amp; Math</option>
+        <option value="control_flow">If-Else Control Flow</option>
+        <option value="typed_vars">Typed Declarations &amp; Scopes</option>
+        <option value="error_syntax">Syntax Error Sample</option>
+        <option value="error_semantic">Semantic Error (Undeclared)</option>
       </select>
 
       <div class="mode-toggle">
         <button id="btn-mode-ast" class="mode-btn active" title="Abstract Syntax Tree (filtered, compact)">AST</button>
         <button id="btn-mode-cst" class="mode-btn" title="Concrete Syntax Tree (full parse tree)">CST</button>
+        <button id="btn-toggle-mode" class="mode-btn" title="Instant CST vs. AST View Toggle">⇄ Toggle</button>
       </div>
 
       <button id="btn-compile" class="btn btn-primary" title="Compile code (Ctrl+Enter)">
@@ -486,6 +490,14 @@
   <script>
     // Example Code Presets
     const SAMPLES = {
+      arithmetic: `x = (10 + 5) * 2; print(x);`,
+      variable_binding: `a = 5; b = a + 10; print(b);`,
+      conditional_logic: `x = 10; if (x == 10) { print(x); };`,
+
+      "Arithmetic Evaluator": `x = (10 + 5) * 2; print(x);`,
+      "Variable Binding": `a = 5; b = a + 10; print(b);`,
+      "Conditional Logic": `x = 10; if (x == 10) { print(x); };`,
+
       basic: `var a = 10;
 var b = 20;
 var sum = a + b * 2;
@@ -554,7 +566,7 @@ print(unknown_variable);`
       });
 
       editor = monaco.editor.create(document.getElementById('editor-container'), {
-        value: SAMPLES.control_flow,
+        value: SAMPLES.arithmetic,
         language: 'pyast',
         theme: 'vs-dark',
         automaticLayout: true,
@@ -567,10 +579,10 @@ print(unknown_variable);`
         tabSize: 4
       });
 
-      // Debounced compilation on typing
+      // 200ms input debounce wrapper on Monaco Editor's onDidChangeModelContent
       editor.onDidChangeModelContent(function() {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(compileCode, 350);
+        debounceTimer = setTimeout(compileCode, 200);
       });
 
       // Cursor movement -> Highlight matching node in Cytoscape
@@ -934,31 +946,53 @@ print(unknown_variable);`
       editor.focus();
     };
 
-    // UI Event Handlers
-    document.getElementById('btn-mode-ast').addEventListener('click', function() {
-      currentMode = 'ast';
-      this.classList.add('active');
-      document.getElementById('btn-mode-cst').classList.remove('active');
-      document.getElementById('graph-title').textContent = "AST Graph Canvas (Filtered)";
+    // Mode toggle helpers
+    function setMode(mode) {
+      currentMode = mode;
+      const isAst = mode === 'ast';
+      const astBtn = document.getElementById('btn-mode-ast');
+      const cstBtn = document.getElementById('btn-mode-cst');
+      if (astBtn) astBtn.classList.toggle('active', isAst);
+      if (cstBtn) cstBtn.classList.toggle('active', !isAst);
+      const graphTitle = document.getElementById('graph-title');
+      if (graphTitle) {
+        graphTitle.textContent = isAst ? "AST Graph Canvas (Filtered)" : "CST Parse Tree Canvas (Full)";
+      }
       compileCode();
-    });
+    }
 
-    document.getElementById('btn-mode-cst').addEventListener('click', function() {
-      currentMode = 'cst';
-      this.classList.add('active');
-      document.getElementById('btn-mode-ast').classList.remove('active');
-      document.getElementById('graph-title').textContent = "CST Parse Tree Canvas (Full)";
-      compileCode();
-    });
+    function toggleMode() {
+      setMode(currentMode === 'ast' ? 'cst' : 'ast');
+    }
+
+    // UI Event Handlers
+    const btnAst = document.getElementById('btn-mode-ast');
+    if (btnAst) {
+      btnAst.addEventListener('click', function() { setMode('ast'); });
+    }
+
+    const btnCst = document.getElementById('btn-mode-cst');
+    if (btnCst) {
+      btnCst.addEventListener('click', function() { setMode('cst'); });
+    }
+
+    const btnToggle = document.getElementById('btn-toggle-mode');
+    if (btnToggle) {
+      btnToggle.addEventListener('click', toggleMode);
+    }
 
     document.getElementById('btn-compile').addEventListener('click', compileCode);
 
-    document.getElementById('example-select').addEventListener('change', function(e) {
-      const val = e.target.value;
-      if (SAMPLES[val] && editor) {
-        editor.setValue(SAMPLES[val]);
-      }
-    });
+    const presetSelect = document.getElementById('example-select') || document.getElementById('preset-select');
+    if (presetSelect) {
+      presetSelect.addEventListener('change', function(e) {
+        const val = e.target.value;
+        if (SAMPLES[val] && editor) {
+          editor.setValue(SAMPLES[val]);
+          compileCode();
+        }
+      });
+    }
 
     // Drawer Tabs switching
     document.querySelectorAll('.drawer-tab').forEach(function(btn) {

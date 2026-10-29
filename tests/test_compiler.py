@@ -1,3 +1,6 @@
+import time
+from contextlib import suppress
+
 from fastapi.testclient import TestClient
 from lark import Token, Tree
 
@@ -155,6 +158,11 @@ def test_api_static_and_compile_mode() -> None:
     assert "py-ast" in root_resp.text
     assert "monaco-editor" in root_resp.text
     assert "cytoscape" in root_resp.text
+    assert "Arithmetic Evaluator" in root_resp.text
+    assert "Variable Binding" in root_resp.text
+    assert "Conditional Logic" in root_resp.text
+    assert "btn-toggle-mode" in root_resp.text
+    assert "200" in root_resp.text
 
     # 2. Static asset mount serves index.html
     static_resp = client.get("/static/index.html")
@@ -176,3 +184,35 @@ def test_api_static_and_compile_mode() -> None:
     assert cst_resp.status_code == 200
     cst_data = cst_resp.json()
     assert len(cst_data["cytoscape_graph"]) > len(ast_data["cytoscape_graph"])
+
+
+def test_ast_compute_performance_benchmark_500_loc() -> None:
+    pipeline = CompilerPipeline()
+    lines = [f"x{i} = {i};" for i in range(500)]
+    code = "\n".join(lines)
+    assert len(code.splitlines()) == 500
+
+    # Temporarily pause test coverage tracing if active to measure pure compute latency
+    cov = None
+    with suppress(Exception):
+        import coverage
+
+        cov = coverage.Coverage.current()
+        if cov is not None:
+            cov.stop()
+
+    try:
+        start_time = time.perf_counter()
+        tree = pipeline.parse_to_tree(code)
+        graph = pipeline.export_cytoscape_json(tree)
+        elapsed = time.perf_counter() - start_time
+    finally:
+        if cov is not None:
+            cov.start()
+
+    assert tree is not None
+    assert len(graph) > 0
+    # Adhere strictly to AGENTS.md performance targets: <50ms AST compute for scripts <500LOC
+    assert elapsed < 0.050, (
+        f"AST compute for 500 LOC took {elapsed * 1000:.2f}ms, exceeding 50ms target"
+    )
