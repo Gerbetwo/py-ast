@@ -60,17 +60,41 @@ git clone https://github.com/your-username/py-ast.git
 cd py-ast
 ```
 
-### 2. Install Dependencies
+### 2. Install Dependencies (Optional)
 
-Using `uv` for environment setup and deterministic dependency syncing:
+> **Note**: Running `python run.py` automatically checks for dependencies and installs or synchronizes them before launch.
 
-```bash
-uv sync --all-extras --dev
-```
+If you prefer to install or synchronize dependencies manually:
+
+- **Using `uv`** (recommended):
+  ```bash
+  uv sync --all-extras --dev
+  ```
+- **Using `pip`**:
+  ```bash
+  pip install -e .
+  ```
 
 ### 3. Launch the Application
 
-#### Option A: Web Server Mode (FastAPI)
+Use the cross-platform launcher `run.py` to run `py-ast` seamlessly across Windows, macOS, and Linux without requiring GNU Make. The script automatically detects `uv` (falling back to `pip`), syncs dependencies, and starts the application.
+
+#### Option A: Native Desktop Window Mode (PyWebview)
+```bash
+python run.py
+```
+*Alternative (using `uv` directly or `make` on Linux/macOS):*
+```bash
+uv run python -m py_ast.main
+# Or using the Makefile:
+make desktop
+```
+
+#### Option B: Web Server Mode (FastAPI)
+```bash
+python run.py --web-only
+```
+*Alternative (using `uv` directly or `make` on Linux/macOS):*
 ```bash
 uv run python -m py_ast.main --web-only
 # Or using the Makefile:
@@ -78,11 +102,9 @@ make dev
 ```
 Open your browser and navigate to `http://127.0.0.1:8000`.
 
-#### Option B: Native Desktop Window Mode (PyWebview)
+Command-line arguments such as `--host` and `--port` are passed through seamlessly:
 ```bash
-uv run python -m py_ast.main
-# Or using the Makefile:
-make desktop
+python run.py --web-only --host 0.0.0.0 --port 8080
 ```
 
 ---
