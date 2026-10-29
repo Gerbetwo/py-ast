@@ -1,4 +1,5 @@
 from py_ast.core.compiler import CompilerPipeline
+from py_ast.core.executor import ExecuteRequest, ExecutionResult, SandboxedExecutor
 from py_ast.core.schemas import (
     CompilerDiagnostic,
     MutateNodeRequest,
@@ -18,10 +19,13 @@ __all__ = [
     "CodeUnparser",
     "CompilerDiagnostic",
     "CompilerPipeline",
+    "ExecuteRequest",
+    "ExecutionResult",
     "MutateNodeRequest",
     "MutateNodeResponse",
     "ParseAnalysisResponse",
     "ParseRequest",
+    "SandboxedExecutor",
     "SemanticAnalyzer",
     "SourceSpan",
     "SymbolDTO",

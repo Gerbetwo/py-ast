@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from py_ast.core.compiler import CompilerPipeline
+from py_ast.core.executor import ExecuteRequest, ExecutionResult, SandboxedExecutor
 from py_ast.core.schemas import (
     CompilerDiagnostic,
     MutateNodeRequest,
@@ -18,6 +19,7 @@ app = FastAPI(title="py-ast Compiler Studio API")
 compiler = CompilerPipeline()
 unparser = CodeUnparser()
 mutator = ASTNodeMutator()
+executor = SandboxedExecutor()
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -31,6 +33,11 @@ def serve_index() -> FileResponse:
 @app.post("/api/compile", response_model=ParseAnalysisResponse)
 def compile_code(req: ParseRequest) -> ParseAnalysisResponse:
     return compiler.compile(req.code, mode=req.mode)
+
+
+@app.post("/api/execute", response_model=ExecutionResult)
+def execute_code(req: ExecuteRequest) -> ExecutionResult:
+    return executor.execute(req)
 
 
 @app.post("/api/mutate", response_model=MutateNodeResponse)
