@@ -216,11 +216,13 @@
 
       .pane-left {
         width: 48%;
-        border-right: 1px solid var(--border-color);
+        flex: 0 0 48%;
+        border-right: none;
       }
 
       .pane-right {
-        width: 52%;
+        flex: 1;
+        min-width: 0;
         background-color: var(--pane-right-bg);
       }
 
@@ -243,7 +245,7 @@
       #editor-container {
         flex: 1;
         width: 100%;
-        height: 100%;
+        min-height: 0;
       }
 
       /* Bottom Inspector Drawer on Left Pane */
@@ -308,7 +310,7 @@
       #cy-container {
         flex: 1;
         width: 100%;
-        height: 100%;
+        min-height: 0;
         background: var(--cy-bg-gradient);
       }
 
@@ -408,15 +410,116 @@
         color: var(--accent-blue);
         font-size: 11px;
       }
+
+      /* Resizable Splitter Bar */
+      .splitter {
+        width: 6px;
+        background-color: var(--border-color);
+        cursor: col-resize;
+        flex-shrink: 0;
+        transition: background-color 0.2s;
+        z-index: 20;
+      }
+
+      .splitter:hover,
+      .splitter.dragging {
+        background-color: var(--accent-blue);
+      }
     </style>
 
     <!-- Monaco Editor AMD Loader -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js">
+    async function compileAndExecuteCode() {
+      if (!editor) {
+        updateStatus("Editor still loading...", "loading");
+        return;
+      }
+
+      const code = editor.getValue();
+      updateStatus("Compiling & Executing...", "loading");
+
+      try {
+        const compileResponse = await fetch('/api/compile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code, mode: currentMode })
+        });
+
+        if (!compileResponse.ok) {
+          throw new Error(`Compiler HTTP ${compileResponse.status}`);
+        }
+
+        const compileData = await compileResponse.json();
+        lastAnalysisData = compileData;
+        renderAnalysis(compileData);
+
+        if (compileData.generated_python && !compileData.has_errors) {
+          const execResponse = await fetch('/api/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ python_code: compileData.generated_python })
+          });
+
+          if (execResponse.ok) {
+            const execData = await execResponse.json();
+            renderExecutionResult(execData);
+          }
+        } else {
+          document.getElementById('tab-content-output').textContent =
+            "Execution skipped: code contains syntax/semantic errors.";
+        }
+      } catch (err) {
+        updateStatus("Error: " + err.message, "error");
+      }
+    }
+
+    function renderExecutionResult(execData) {
+      const outputElem = document.getElementById('tab-content-output');
+      let outputText = "";
+
+      if (execData.stdout) {
+        outputText += execData.stdout;
+      }
+      if (execData.stderr) {
+        outputText += (outputText ? "\n--- Stderr ---\n" : "") + execData.stderr;
+      }
+      if (!outputText) {
+        outputText = `Program exited with code ${execData.exit_code} (${execData.duration_ms}ms, no output).`;
+      }
+
+      outputElem.textContent = outputText;
+
+      document.querySelectorAll('.drawer-tab').forEach(b => b.classList.remove('active'));
+      const outputBtn = document.querySelector('.drawer-tab[data-tab="output"]');
+      if (outputBtn) outputBtn.classList.add('active');
+
+      ['python', 'output', 'diagnostics', 'symbols', 'tokens'].forEach(function(t) {
+        const el = document.getElementById('tab-content-' + t);
+        if (el) el.style.display = (t === 'output') ? 'block' : 'none';
+      });
+
+      updateStatus(`Executed in ${execData.duration_ms}ms (Exit Code: ${execData.exit_code})`, execData.exit_code === 0 ? "ready" : "error");
+    }
+
+</script>
 
     <!-- Cytoscape & Dagre Layout Engine -->
+        <!-- AMD Conflict Guard: Temporarily disable define.amd for UMD scripts -->
+    <script>
+      if (typeof window.define === 'function' && window.define.amd) {
+        window.defineAmdBackup = window.define.amd;
+        window.define.amd = false;
+      }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+      <!-- Restore Monaco AMD define -->
+    <script>
+      if (typeof window.define === 'function' && window.defineAmdBackup) {
+        window.define.amd = window.defineAmdBackup;
+      }
+    </script>
   </head>
   <body>
     <!-- Header -->
@@ -501,9 +604,9 @@
     </header>
 
     <!-- Workbench -->
-    <main class="workbench">
+    <main class="workbench" id="workbench">
       <!-- Left Pane: Code & Inspector -->
-      <section class="pane pane-left">
+      <section class="pane pane-left" id="pane-left">
         <div class="pane-header">
           <span>Source Code (EBNF Grammar)</span>
           <span
@@ -534,6 +637,7 @@
           <div id="tab-content-python" class="drawer-content">
             # Compiled Python output will appear here...
           </div>
+<div id="tab-content-output" class="drawer-content" style="display: none;">No output recorded.</div>
           <div
             id="tab-content-diagnostics"
             class="drawer-content"
@@ -558,8 +662,11 @@
         </div>
       </section>
 
+      <!-- Resizable Splitter Bar -->
+      <div class="splitter" id="splitter" title="Drag to resize panels"></div>
+
       <!-- Right Pane: Cytoscape Graph -->
-      <section class="pane pane-right">
+      <section class="pane pane-right" id="pane-right">
         <div class="pane-header">
           <span id="graph-title">AST Graph Canvas</span>
           <span
@@ -1249,6 +1356,66 @@ print(unknown_variable);`,
               t === tab ? "block" : "none";
           });
         });
+      });
+
+      // Resizable Splitter Logic & Responsive Auto-Sizing
+      const workbench = document.getElementById("workbench");
+      const paneLeft = document.getElementById("pane-left");
+      const splitter = document.getElementById("splitter");
+      let isDragging = false;
+
+      if (splitter && paneLeft && workbench) {
+        splitter.addEventListener("mousedown", function (e) {
+          isDragging = true;
+          splitter.classList.add("dragging");
+          document.body.style.cursor = "col-resize";
+          e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", function (e) {
+          if (!isDragging) return;
+          const rect = workbench.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          let percentage = (x / rect.width) * 100;
+
+          // Clamp between 15% and 85% for usability
+          if (percentage < 15) percentage = 15;
+          if (percentage > 85) percentage = 85;
+
+          paneLeft.style.flex = `0 0 ${percentage}%`;
+          paneLeft.style.width = `${percentage}%`;
+
+          if (editor) {
+            editor.layout();
+          }
+          if (cy) {
+            cy.resize();
+          }
+        });
+
+        document.addEventListener("mouseup", function () {
+          if (isDragging) {
+            isDragging = false;
+            splitter.classList.remove("dragging");
+            document.body.style.cursor = "default";
+            if (editor) {
+              editor.layout();
+            }
+            if (cy) {
+              cy.resize();
+            }
+          }
+        });
+      }
+
+      // Auto-resize listener for window size changes
+      window.addEventListener("resize", function () {
+        if (editor) {
+          editor.layout();
+        }
+        if (cy) {
+          cy.resize();
+        }
       });
 
       // Canvas overlay buttons
