@@ -1,6 +1,6 @@
 # py-ast | Educational Compiler & AST Visualizer Studio
 
-[![CI Pipeline](https://github.com/daniel-lasso/py-ast/actions/workflows/ci.yml/badge.svg)](https://github.com/daniel-lasso/py-ast/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/Gerbetwo/py-ast/actions/workflows/ci.yml/badge.svg)](https://github.com/Gerbetwo/py-ast/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
@@ -56,7 +56,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/py-ast.git
+git clone https://github.com/Gerbetwo/py-ast.git
 cd py-ast
 ```
 

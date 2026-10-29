@@ -3,23 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>py-ast | Compiler & AST Visualizer Studio</title>
+    <title>Universidad de Nariño | py-ast Compiler Studio</title>
     <style>
       :root {
-        --bg-primary: #0f172a;
-        --bg-secondary: #1e293b;
-        --bg-panel: #141e30;
-        --border-color: #334155;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --accent-purple: #8b5cf6;
-        --accent-blue: #3b82f6;
-        --accent-green: #10b981;
-        --accent-red: #ef4444;
-        --accent-yellow: #f59e0b;
-        --pane-right-bg: #0b1120;
+        --bg-primary: #0f1410;
+        --bg-secondary: #162018;
+        --bg-panel: #1c2b1f;
+        --border-color: #2e4433;
+        --text-primary: #f2f5f3;
+        --text-secondary: #8da394;
+        --accent-green: #009640; /* Universidad de Nariño Sinople Green */
+        --accent-green-hover: #007a34;
+        --accent-blue: #2563eb;
+        --accent-red: #dc2626;
+        --accent-yellow: #d97706;
+        --pane-right-bg: #090e0b;
         --drawer-text: #e2e8f0;
-        --cy-bg-gradient: radial-gradient(circle at 50% 50%, #17223b 0%, #090e1a 100%);
+        --cy-bg-gradient: radial-gradient(circle at 50% 50%, #162018 0%, #090e0b 100%);
       }
 
       [data-theme="light"] {
@@ -29,9 +29,9 @@
         --border-color: #cbd5e1;
         --text-primary: #0f172a;
         --text-secondary: #64748b;
-        --accent-purple: #7c3aed;
+        --accent-green: #009640;
+        --accent-green-hover: #007a34;
         --accent-blue: #2563eb;
-        --accent-green: #059669;
         --accent-red: #dc2626;
         --accent-yellow: #d97706;
         --pane-right-bg: #f1f5f9;
@@ -58,11 +58,11 @@
         transition: background-color 0.2s, color 0.2s;
       }
 
-      /* Top Navigation Toolbar */
+      /* Institutional Header Toolbar */
       header {
         background-color: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-color);
-        height: 54px;
+        border-bottom: 2px solid var(--accent-green);
+        height: 56px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -74,23 +74,37 @@
       .brand {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-weight: 700;
-        font-size: 16px;
-        letter-spacing: -0.02em;
+        gap: 12px;
       }
 
       .brand-logo {
-        background: linear-gradient(
-          135deg,
-          var(--accent-purple),
-          var(--accent-blue)
-        );
+        background-color: var(--accent-green);
         color: white;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 13px;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
         font-family: ui-monospace, monospace;
+        letter-spacing: 0.05em;
+      }
+
+      .brand-text {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .brand-title {
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: -0.01em;
+        color: var(--text-primary);
+      }
+
+      .brand-subtitle {
+        font-size: 10px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
 
       .toolbar-group {
@@ -103,9 +117,9 @@
         background-color: var(--bg-panel);
         color: var(--text-primary);
         border: 1px solid var(--border-color);
-        border-radius: 6px;
+        border-radius: 4px;
         padding: 6px 10px;
-        font-size: 13px;
+        font-size: 11px;
         outline: none;
         cursor: pointer;
       }
@@ -114,7 +128,7 @@
         display: flex;
         background-color: var(--bg-panel);
         border: 1px solid var(--border-color);
-        border-radius: 6px;
+        border-radius: 4px;
         overflow: hidden;
       }
 
@@ -122,15 +136,15 @@
         background: none;
         border: none;
         color: var(--text-secondary);
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 6px 10px;
+        font-size: 11px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
       }
 
       .mode-btn.active {
-        background-color: var(--accent-blue);
+        background-color: var(--accent-green);
         color: white;
       }
 
@@ -139,16 +153,14 @@
         color: var(--text-primary);
         border: 1px solid var(--border-color);
         padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 6px;
-        transition:
-          background-color 0.2s,
-          border-color 0.2s;
+        transition: background-color 0.2s, border-color 0.2s;
       }
 
       .btn:hover {
@@ -156,22 +168,26 @@
       }
 
       .btn-primary {
-        background-color: var(--accent-purple);
-        border-color: var(--accent-purple);
+        background-color: var(--accent-green);
+        border-color: var(--accent-green);
         color: white;
       }
 
       .btn-primary:hover {
-        opacity: 0.9;
+        background-color: var(--accent-green-hover);
       }
 
-      /* Category Legend */
+      /* Clean Legend Bar */
       .legend-bar {
         display: flex;
         align-items: center;
         gap: 12px;
-        font-size: 12px;
+        font-size: 11px;
         color: var(--text-secondary);
+        background: var(--bg-panel);
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
       }
 
       .legend-item {
@@ -181,25 +197,17 @@
       }
 
       .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 3px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
       }
 
-      .dot-control-flow {
-        background-color: var(--accent-purple);
-      }
-      .dot-expression {
-        background-color: var(--accent-blue);
-      }
-      .dot-identifier {
-        background-color: var(--accent-green);
-      }
-      .dot-error {
-        background-color: var(--accent-red);
-      }
+      .dot-control-flow { background-color: #8b5cf6; }
+      .dot-expression { background-color: #3b82f6; }
+      .dot-identifier { background-color: #009640; }
+      .dot-error { background-color: #ef4444; }
 
-      /* Main Workbench Split Layout */
+      /* Workbench Layout */
       .workbench {
         flex: 1;
         display: flex;
@@ -230,15 +238,15 @@
         background-color: var(--bg-secondary);
         border-bottom: 1px solid var(--border-color);
         padding: 8px 14px;
-        font-size: 12px;
-        font-weight: 600;
+        font-size: 11px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: var(--text-secondary);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 38px;
+        height: 36px;
         flex-shrink: 0;
       }
 
@@ -248,9 +256,9 @@
         min-height: 0;
       }
 
-      /* Bottom Inspector Drawer on Left Pane */
+      /* Inspector Drawer */
       .bottom-drawer {
-        height: 220px;
+        height: 210px;
         border-top: 1px solid var(--border-color);
         background-color: var(--bg-panel);
         display: flex;
@@ -265,20 +273,22 @@
       }
 
       .drawer-tab {
-        padding: 6px 14px;
-        font-size: 12px;
-        font-weight: 500;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 600;
         color: var(--text-secondary);
         background: none;
         border: none;
         cursor: pointer;
         border-bottom: 2px solid transparent;
         transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
       }
 
       .drawer-tab.active {
         color: var(--text-primary);
-        border-bottom-color: var(--accent-blue);
+        border-bottom-color: var(--accent-green);
         background-color: var(--bg-panel);
       }
 
@@ -287,9 +297,37 @@
         overflow: auto;
         padding: 12px;
         font-family: ui-monospace, monospace;
-        font-size: 12px;
+        font-size: 11px;
         color: var(--drawer-text);
         white-space: pre-wrap;
+      }
+
+      /* Formal Academic Data Tables */
+      .academic-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        text-align: left;
+      }
+
+      .academic-table th {
+        background-color: var(--bg-secondary);
+        color: var(--text-secondary);
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .academic-table td {
+        padding: 5px 8px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+      }
+
+      .academic-table tr:hover {
+        background-color: rgba(0, 150, 64, 0.05);
       }
 
       .diagnostic-item {
@@ -300,6 +338,8 @@
         border-left: 3px solid var(--accent-red);
         color: var(--accent-red);
         cursor: pointer;
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
       }
 
       .diagnostic-item:hover {
@@ -314,10 +354,9 @@
         background: var(--cy-bg-gradient);
       }
 
-      /* Floating Graph Controls */
       .canvas-overlay-controls {
         position: absolute;
-        top: 50px;
+        top: 48px;
         right: 16px;
         display: flex;
         flex-direction: column;
@@ -326,17 +365,16 @@
       }
 
       .icon-btn {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
         padding: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
-        font-size: 16px;
+        border-radius: 4px;
+        font-size: 14px;
       }
 
-      /* Floating Node Metadata Inspector */
       .node-inspector {
         position: absolute;
         bottom: 16px;
@@ -345,21 +383,21 @@
         background-color: var(--bg-panel);
         backdrop-filter: blur(8px);
         border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 10px 14px;
+        border-radius: 6px;
+        padding: 8px 14px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-        font-size: 12px;
+        font-size: 11px;
         z-index: 10;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       }
 
       .inspector-badge {
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
         color: white;
@@ -369,7 +407,7 @@
       footer {
         background-color: var(--bg-secondary);
         border-top: 1px solid var(--border-color);
-        height: 28px;
+        height: 26px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -386,34 +424,29 @@
       }
 
       .status-dot {
-        width: 8px;
-        height: 8px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
         background-color: var(--accent-green);
       }
 
-      .status-dot.loading {
-        background-color: var(--accent-yellow);
-      }
-      .status-dot.error {
-        background-color: var(--accent-red);
-      }
+      .status-dot.loading { background-color: var(--accent-yellow); }
+      .status-dot.error { background-color: var(--accent-red); }
 
-      /* Tokens grid badge */
       .token-badge {
         display: inline-block;
         margin: 2px 4px;
         padding: 2px 6px;
-        border-radius: 4px;
-        background-color: rgba(59, 130, 246, 0.2);
-        border: 1px solid rgba(59, 130, 246, 0.4);
-        color: var(--accent-blue);
-        font-size: 11px;
+        border-radius: 3px;
+        background-color: rgba(0, 150, 64, 0.15);
+        border: 1px solid rgba(0, 150, 64, 0.3);
+        color: #4ade80;
+        font-size: 10px;
+        font-family: ui-monospace, monospace;
       }
 
-      /* Resizable Splitter Bar */
       .splitter {
-        width: 6px;
+        width: 5px;
         background-color: var(--border-color);
         cursor: col-resize;
         flex-shrink: 0;
@@ -421,90 +454,88 @@
         z-index: 20;
       }
 
-      .splitter:hover,
-      .splitter.dragging {
-        background-color: var(--accent-blue);
+      .splitter:hover, .splitter.dragging {
+        background-color: var(--accent-green);
       }
     </style>
 
-    <!-- Monaco Editor AMD Loader -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js">
-    async function compileAndExecuteCode() {
-      if (!editor) {
-        updateStatus("Editor still loading...", "loading");
-        return;
-      }
-
-      const code = editor.getValue();
-      updateStatus("Compiling & Executing...", "loading");
-
-      try {
-        const compileResponse = await fetch('/api/compile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: code, mode: currentMode })
-        });
-
-        if (!compileResponse.ok) {
-          throw new Error(`Compiler HTTP ${compileResponse.status}`);
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script>
+      async function compileAndExecuteCode() {
+        if (!editor) {
+          updateStatus("Editor still loading...", "loading");
+          return;
         }
 
-        const compileData = await compileResponse.json();
-        lastAnalysisData = compileData;
-        renderAnalysis(compileData);
+        const code = editor.getValue();
+        updateStatus("Compiling & Executing...", "loading");
 
-        if (compileData.generated_python && !compileData.has_errors) {
-          const execResponse = await fetch('/api/execute', {
+        try {
+          const compileResponse = await fetch('/api/compile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ python_code: compileData.generated_python })
+            body: JSON.stringify({ code: code, mode: currentMode })
           });
 
-          if (execResponse.ok) {
-            const execData = await execResponse.json();
-            renderExecutionResult(execData);
+          if (!compileResponse.ok) {
+            throw new Error(`Compiler HTTP ${compileResponse.status}`);
           }
-        } else {
-          document.getElementById('tab-content-output').textContent =
-            "Execution skipped: code contains syntax/semantic errors.";
+
+          const compileData = await compileResponse.json();
+          lastAnalysisData = compileData;
+          renderAnalysis(compileData);
+
+          if (compileData.generated_python && !compileData.has_errors) {
+            const execResponse = await fetch('/api/execute', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ python_code: compileData.generated_python })
+            });
+
+            if (execResponse.ok) {
+              const execData = await execResponse.json();
+              renderExecutionResult(execData);
+            }
+          } else {
+            document.getElementById('tab-content-output').textContent =
+              "Execution skipped: code contains syntax/semantic errors.";
+          }
+        } catch (err) {
+          updateStatus("Error: " + err.message, "error");
         }
-      } catch (err) {
-        updateStatus("Error: " + err.message, "error");
-      }
-    }
-
-    function renderExecutionResult(execData) {
-      const outputElem = document.getElementById('tab-content-output');
-      let outputText = "";
-
-      if (execData.stdout) {
-        outputText += execData.stdout;
-      }
-      if (execData.stderr) {
-        outputText += (outputText ? "\n--- Stderr ---\n" : "") + execData.stderr;
-      }
-      if (!outputText) {
-        outputText = `Program exited with code ${execData.exit_code} (${execData.duration_ms}ms, no output).`;
       }
 
-      outputElem.textContent = outputText;
+      function renderExecutionResult(execData) {
+        const outputElem = document.getElementById('tab-content-output');
+        let outputText = "";
 
-      document.querySelectorAll('.drawer-tab').forEach(b => b.classList.remove('active'));
-      const outputBtn = document.querySelector('.drawer-tab[data-tab="output"]');
-      if (outputBtn) outputBtn.classList.add('active');
+        if (execData.stdout) {
+          outputText += execData.stdout;
+        }
+        if (execData.stderr) {
+          outputText += (outputText ? "\n--- Stderr ---\n" : "") + execData.stderr;
+        }
+        if (!outputText) {
+          outputText = `Program exited with code ${execData.exit_code} (${execData.duration_ms}ms, no output).`;
+        }
 
-      ['python', 'output', 'diagnostics', 'symbols', 'tokens'].forEach(function(t) {
-        const el = document.getElementById('tab-content-' + t);
-        if (el) el.style.display = (t === 'output') ? 'block' : 'none';
-      });
+        outputElem.textContent = outputText;
 
-      updateStatus(`Executed in ${execData.duration_ms}ms (Exit Code: ${execData.exit_code})`, execData.exit_code === 0 ? "ready" : "error");
-    }
+        document.querySelectorAll('.drawer-tab').forEach(b => b.classList.remove('active'));
+        const outputBtn = document.querySelector('.drawer-tab[data-tab="output"]');
+        if (outputBtn) outputBtn.classList.add('active');
 
-</script>
+        ['python', 'output', 'diagnostics', 'symbols', 'tokens'].forEach(function(t) {
+          const el = document.getElementById('tab-content-' + t);
+          if (el) el.style.display = (t === 'output') ? 'block' : 'none';
+        });
 
-    <!-- Cytoscape & Dagre Layout Engine -->
-        <!-- AMD Conflict Guard: Temporarily disable define.amd for UMD scripts -->
+        updateStatus(`Executed in ${execData.duration_ms}ms (Exit Code: ${execData.exit_code})`, execData.exit_code === 0 ? "ready" : "error");
+      }
+    </script>
+
+    <!-- Cytoscape & Dagre Engine -->
     <script>
       if (typeof window.define === 'function' && window.define.amd) {
         window.defineAmdBackup = window.define.amd;
@@ -514,7 +545,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.2/cytoscape.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
-      <!-- Restore Monaco AMD define -->
     <script>
       if (typeof window.define === 'function' && window.defineAmdBackup) {
         window.define.amd = window.defineAmdBackup;
@@ -522,26 +552,21 @@
     </script>
   </head>
   <body>
-    <!-- Header -->
+    <!-- Institutional Header -->
     <header>
       <div class="brand">
-        <div class="brand-logo">py-ast</div>
-        <span>Compiler & AST Visualizer Studio</span>
+        <div class="brand-logo">UDENAR</div>
+        <div class="brand-text">
+          <span class="brand-title">Universidad de Nariño</span>
+          <span class="brand-subtitle">Facultad de Ingeniería • Compiladores</span>
+        </div>
       </div>
 
       <div class="legend-bar">
-        <div class="legend-item">
-          <span class="legend-dot dot-control-flow"></span> Control Flow
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot dot-expression"></span> Expression
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot dot-identifier"></span> Identifier
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot dot-error"></span> Error
-        </div>
+        <div class="legend-item"><span class="legend-dot dot-control-flow"></span> Control Flow</div>
+        <div class="legend-item"><span class="legend-dot dot-expression"></span> Expression</div>
+        <div class="legend-item"><span class="legend-dot dot-identifier"></span> Identifier</div>
+        <div class="legend-item"><span class="legend-dot dot-error"></span> Error</div>
       </div>
 
       <div class="toolbar-group">
@@ -562,200 +587,90 @@
         </select>
 
         <div class="mode-toggle">
-          <button
-            id="btn-mode-ast"
-            class="mode-btn active"
-            title="Abstract Syntax Tree (filtered, compact)"
-          >
-            AST
-          </button>
-          <button
-            id="btn-mode-cst"
-            class="mode-btn"
-            title="Concrete Syntax Tree (full parse tree)"
-          >
-            CST
-          </button>
-          <button
-            id="btn-toggle-mode"
-            class="mode-btn"
-            title="Instant CST vs. AST View Toggle"
-          >
-            ⇄ Toggle
-          </button>
+          <button id="btn-mode-ast" class="mode-btn active" title="Abstract Syntax Tree">AST</button>
+          <button id="btn-mode-cst" class="mode-btn" title="Concrete Syntax Tree">CST</button>
+          <button id="btn-toggle-mode" class="mode-btn" title="Toggle CST vs AST">⇄</button>
         </div>
 
-        <button
-          id="btn-theme-toggle"
-          class="btn icon-btn"
-          title="Toggle Light/Dark Theme"
-        >
-          🌙
-        </button>
-
-        <button
-          id="btn-compile"
-          class="btn btn-primary"
-          title="Compile code (Ctrl+Enter)"
-        >
-          <span>▶ Run</span>
-        </button>
+        <button id="btn-theme-toggle" class="btn icon-btn" title="Toggle Theme">🌙</button>
+        <button id="btn-compile" class="btn btn-primary" title="Compile code (Ctrl+Enter)"><span>▶ Run</span></button>
       </div>
     </header>
 
     <!-- Workbench -->
     <main class="workbench" id="workbench">
-      <!-- Left Pane: Code & Inspector -->
       <section class="pane pane-left" id="pane-left">
         <div class="pane-header">
-          <span>Source Code (EBNF Grammar)</span>
-          <span
-            style="
-              font-size: 11px;
-              text-transform: none;
-              color: var(--text-secondary);
-            "
-            >Bidirectional Monaco ↔ Cytoscape Sync</span
-          >
+          <span>Source Code (EBNF)</span>
+          <span style="font-size: 10px; text-transform: none; color: var(--text-secondary); font-family: ui-monospace, monospace;">Sync Active</span>
         </div>
 
         <div id="editor-container"></div>
 
         <div class="bottom-drawer">
           <div class="drawer-tabs">
-            <button class="drawer-tab active" data-tab="python">
-              Generated Python
-            </button>
-            <button class="drawer-tab" data-tab="diagnostics">
-              Diagnostics (<span id="diag-count">0</span>)
-            </button>
+            <button class="drawer-tab active" data-tab="python">Python</button>
+            <button class="drawer-tab" data-tab="output">Output</button>
+            <button class="drawer-tab" data-tab="diagnostics">Diagnostics (<span id="diag-count">0</span>)</button>
             <button class="drawer-tab" data-tab="symbols">Symbol Table</button>
-            <button class="drawer-tab" data-tab="tokens">
-              Tokens (<span id="token-count">0</span>)
-            </button>
+            <button class="drawer-tab" data-tab="tokens">Tokens (<span id="token-count">0</span>)</button>
           </div>
-          <div id="tab-content-python" class="drawer-content">
-            # Compiled Python output will appear here...
-          </div>
-<div id="tab-content-output" class="drawer-content" style="display: none;">No output recorded.</div>
-          <div
-            id="tab-content-diagnostics"
-            class="drawer-content"
-            style="display: none"
-          >
-            No diagnostics recorded.
-          </div>
-          <div
-            id="tab-content-symbols"
-            class="drawer-content"
-            style="display: none"
-          >
-            Symbol table empty.
-          </div>
-          <div
-            id="tab-content-tokens"
-            class="drawer-content"
-            style="display: none"
-          >
-            No tokens extracted.
-          </div>
+          <div id="tab-content-python" class="drawer-content"># Compiled Python output will appear here...</div>
+          <div id="tab-content-output" class="drawer-content" style="display: none;">No output recorded.</div>
+          <div id="tab-content-diagnostics" class="drawer-content" style="display: none;">No diagnostics recorded.</div>
+          <div id="tab-content-symbols" class="drawer-content" style="display: none;">Symbol table empty.</div>
+          <div id="tab-content-tokens" class="drawer-content" style="display: none;">No tokens extracted.</div>
         </div>
       </section>
 
-      <!-- Resizable Splitter Bar -->
-      <div class="splitter" id="splitter" title="Drag to resize panels"></div>
+      <div class="splitter" id="splitter" title="Resize panels"></div>
 
-      <!-- Right Pane: Cytoscape Graph -->
       <section class="pane pane-right" id="pane-right">
         <div class="pane-header">
           <span id="graph-title">AST Graph Canvas</span>
-          <span
-            id="graph-stats"
-            style="
-              font-size: 11px;
-              text-transform: none;
-              color: var(--text-secondary);
-            "
-            >0 nodes, 0 edges</span
-          >
+          <span id="graph-stats" style="font-size: 10px; text-transform: none; color: var(--text-secondary); font-family: ui-monospace, monospace;">0 nodes, 0 edges</span>
         </div>
 
         <div id="cy-container"></div>
 
-        <!-- Floating Canvas Controls -->
         <div class="canvas-overlay-controls">
-          <button id="btn-fit" class="btn icon-btn" title="Fit to viewport">
-            ⛶
-          </button>
-          <button id="btn-zoom-in" class="btn icon-btn" title="Zoom in">
-            +
-          </button>
-          <button id="btn-zoom-out" class="btn icon-btn" title="Zoom out">
-            −
-          </button>
-          <button
-            id="btn-relayout"
-            class="btn icon-btn"
-            title="Re-arrange layout"
-          >
-            ↻
-          </button>
+          <button id="btn-fit" class="btn icon-btn" title="Fit to viewport">⛶</button>
+          <button id="btn-zoom-in" class="btn icon-btn" title="Zoom in">+</button>
+          <button id="btn-zoom-out" class="btn icon-btn" title="Zoom out">−</button>
+          <button id="btn-relayout" class="btn icon-btn" title="Re-arrange layout">↻</button>
         </div>
 
-        <!-- Selected Node Inspector -->
         <div id="node-inspector" class="node-inspector">
           <div>
-            <strong>Selected Node:</strong>
-            <span
-              id="inspect-label"
-              style="font-family: ui-monospace, monospace; margin-left: 6px"
-              >(None)</span
-            >
+            <strong>Node:</strong> <span id="inspect-label" style="font-family: ui-monospace, monospace; margin-left: 4px">(None)</span>
           </div>
           <div>
-            <strong>Category:</strong>
-            <span
-              id="inspect-category"
-              class="inspector-badge"
-              style="background-color: #64748b; margin-left: 4px"
-              >N/A</span
-            >
+            <strong>Category:</strong> <span id="inspect-category" class="inspector-badge" style="background-color: #64748b; margin-left: 4px">N/A</span>
           </div>
           <div>
-            <strong>Source Span:</strong>
-            <span
-              id="inspect-span"
-              style="
-                font-family: ui-monospace, monospace;
-                color: var(--accent-blue);
-                margin-left: 4px;
-              "
-              >Line -, Col -</span
-            >
+            <strong>Span:</strong> <span id="inspect-span" style="font-family: ui-monospace, monospace; color: #4ade80; margin-left: 4px">Line -, Col -</span>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- Status Bar -->
     <footer>
       <div class="status-indicator">
         <span id="status-dot" class="status-dot"></span>
         <span id="status-text">Ready</span>
       </div>
-      <div>py-ast Engine • Single-Source Data Flow • Cytoscape.js DAG</div>
+      <div>Universidad de Nariño • py-ast Studio • LALR Engine</div>
     </footer>
 
     <script>
-      // Example Code Presets
       const SAMPLES = {
         arithmetic: `x = (10 + 5) * 2; print(x);`,
         variable_binding: `a = 5; b = a + 10; print(b);`,
-        conditional_logic: `x = 10; if (x == 10) { print(x); };`,
+        conditional_logic: `x = 10; if (x == 10) { print(x); }`,
 
         "Arithmetic Evaluator": `x = (10 + 5) * 2; print(x);`,
         "Variable Binding": `a = 5; b = a + 10; print(b);`,
-        "Conditional Logic": `x = 10; if (x == 10) { print(x); };`,
+        "Conditional Logic": `x = 10; if (x == 10) { print(x); }`,
 
         basic: `var a = 10;
 var b = 20;
@@ -792,26 +707,20 @@ print(unknown_variable);`,
       let lastAnalysisData = null;
       let debounceTimer = null;
 
-      // Register Cytoscape Dagre extension if present
-      if (
-        typeof cytoscape !== "undefined" &&
-        typeof cytoscapeDagre !== "undefined"
-      ) {
+      if (typeof cytoscape !== "undefined" && typeof cytoscapeDagre !== "undefined") {
         try {
           cytoscape.use(cytoscapeDagre);
         } catch (e) {
-          console.warn("Cytoscape dagre registration note:", e);
+          console.warn("Cytoscape dagre note:", e);
         }
       }
 
-      // Monaco Editor Initialization
       require.config({
         paths: {
           vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs",
         },
       });
       require(["vs/editor/editor.main"], function () {
-        // Custom grammar syntax tokens
         monaco.languages.register({ id: "pyast" });
         monaco.languages.setMonarchTokensProvider("pyast", {
           keywords: [
@@ -851,7 +760,7 @@ print(unknown_variable);`,
             language: "pyast",
             theme: "vs-dark",
             automaticLayout: true,
-            fontSize: 13,
+            fontSize: 12,
             minimap: { enabled: false },
             lineNumbers: "on",
             scrollBeyondLastLine: false,
@@ -861,19 +770,16 @@ print(unknown_variable);`,
           },
         );
 
-        // 200ms input debounce wrapper on Monaco Editor's onDidChangeModelContent
         editor.onDidChangeModelContent(function () {
           clearTimeout(debounceTimer);
           debounceTimer = setTimeout(compileCode, 200);
         });
 
-        // Cursor movement -> Highlight matching node in Cytoscape
         editor.onDidChangeCursorPosition(function (e) {
           if (suppressEditorCursorSync) return;
           highlightNodeAtSpan(e.position.lineNumber, e.position.column);
         });
 
-        // Keyboard shortcut Ctrl+Enter to run
         editor.addCommand(
           monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
           function () {
@@ -881,11 +787,9 @@ print(unknown_variable);`,
           },
         );
 
-        // Initial compile
         compileCode();
       });
 
-      // Cytoscape Canvas Initialization
       function initCytoscape() {
         const cyContainer = document.getElementById("cy-container");
         cy = cytoscape({
@@ -906,56 +810,55 @@ print(unknown_variable);`,
                 "text-wrap": "wrap",
                 "text-max-width": "120px",
                 padding: "10px",
-                "background-color": "#475569",
+                "background-color": "#2e4433",
                 "border-width": 2,
-                "border-color": "#334155",
+                "border-color": "#009640",
                 shape: "round-rectangle",
                 width: "label",
                 height: "36px",
-                "transition-property":
-                  "background-color, border-color, border-width",
+                "transition-property": "background-color, border-color, border-width",
                 "transition-duration": "0.15s",
               },
             },
             {
               selector: 'node[category = "control_flow"]',
               style: {
-                "background-color": "#8B5CF6",
-                "border-color": "#7C3AED",
+                "background-color": "#5b21b6",
+                "border-color": "#8b5cf6",
               },
             },
             {
               selector: 'node[category = "expression"]',
               style: {
-                "background-color": "#3B82F6",
-                "border-color": "#2563EB",
+                "background-color": "#1e3a8a",
+                "border-color": "#3b82f6",
               },
             },
             {
               selector: 'node[category = "identifier"]',
               style: {
-                "background-color": "#10B981",
-                "border-color": "#059669",
+                "background-color": "#064e3b",
+                "border-color": "#009640",
               },
             },
             {
               selector: 'node[category = "error"]',
               style: {
-                "background-color": "#EF4444",
-                "border-color": "#DC2626",
+                "background-color": "#7f1d1d",
+                "border-color": "#ef4444",
               },
             },
             {
               selector: "node.highlighted",
               style: {
-                "border-color": "#F59E0B",
+                "border-color": "#d97706",
                 "border-width": 4,
               },
             },
             {
               selector: "node.selected-node",
               style: {
-                "border-color": "#38BDF8",
+                "border-color": "#38bdf8",
                 "border-width": 4,
               },
             },
@@ -963,8 +866,8 @@ print(unknown_variable);`,
               selector: "edge",
               style: {
                 width: 2,
-                "line-color": "#475569",
-                "target-arrow-color": "#475569",
+                "line-color": "#2e4433",
+                "target-arrow-color": "#2e4433",
                 "target-arrow-shape": "triangle",
                 "curve-style": "bezier",
                 "arrow-scale": 1.1,
@@ -974,14 +877,13 @@ print(unknown_variable);`,
               selector: "edge.highlighted",
               style: {
                 width: 3,
-                "line-color": "#38BDF8",
-                "target-arrow-color": "#38BDF8",
+                "line-color": "#38bdf8",
+                "target-arrow-color": "#38bdf8",
               },
             },
           ],
         });
 
-        // Node Click -> Highlight in Editor (Bidirectional Selection)
         cy.on("tap", "node", function (evt) {
           const node = evt.target;
           const d = node.data();
@@ -1015,7 +917,6 @@ print(unknown_variable);`,
         });
       }
 
-      // Bidirectional Lookup: Monaco Cursor -> Cytoscape Node
       function highlightNodeAtSpan(line, col) {
         if (!cy) return;
         let matchedNode = null;
@@ -1057,21 +958,19 @@ print(unknown_variable);`,
         }
       }
 
-      // Update Bottom Right Inspector
       function updateInspector(d) {
         if (!d) return;
-        document.getElementById("inspect-label").textContent =
-          d.label || "(Unnamed)";
+        document.getElementById("inspect-label").textContent = d.label || "(Unnamed)";
 
         const catBadge = document.getElementById("inspect-category");
         const cat = d.category || "unknown";
         catBadge.textContent = cat;
 
         const colors = {
-          control_flow: "#8B5CF6",
-          expression: "#3B82F6",
-          identifier: "#10B981",
-          error: "#EF4444",
+          control_flow: "#8b5cf6",
+          expression: "#3b82f6",
+          identifier: "#009640",
+          error: "#ef4444",
         };
         catBadge.style.backgroundColor = colors[cat] || "#64748b";
 
@@ -1080,19 +979,15 @@ print(unknown_variable);`,
           const sCol = d.span.column || d.span.start_column || 1;
           const eLine = d.span.end_line || sLine;
           const eCol = d.span.end_column || sCol;
-          document.getElementById("inspect-span").textContent =
-            `L${sLine}:${sCol} → L${eLine}:${eCol}`;
+          document.getElementById("inspect-span").textContent = `L${sLine}:${sCol} → L${eLine}:${eCol}`;
         } else {
           document.getElementById("inspect-span").textContent = "N/A";
         }
       }
 
-      // Run DAG Layout
       function runGraphLayout() {
         if (!cy || cy.nodes().length === 0) return;
-        const isDagreAvailable = Boolean(
-          cy.elements().layout({ name: "dagre" }),
-        );
+        const isDagreAvailable = Boolean(cy.elements().layout({ name: "dagre" }));
         const layoutOptions = isDagreAvailable
           ? {
               name: "dagre",
@@ -1116,10 +1011,9 @@ print(unknown_variable);`,
         layout.run();
       }
 
-      // Compile API Interaction
       async function compileCode() {
         if (!editor) {
-          updateStatus("Editor still loading...", "loading");
+          updateStatus("Editor loading...", "loading");
           return;
         }
         const code = editor.getValue();
@@ -1144,25 +1038,60 @@ print(unknown_variable);`,
         }
       }
 
-      // Render Analysis Data
+      function renderSymbolTableHtml(tableDto) {
+        if (!tableDto || !tableDto.symbols) return "Symbol table empty.";
+        
+        let rows = "";
+        const symbols = tableDto.symbols;
+        for (const [name, sym] of Object.entries(symbols)) {
+          rows += `<tr>
+            <td><code>${escapeHtml(name)}</code></td>
+            <td>${escapeHtml(sym.symbol_type || 'variable')}</td>
+            <td>${sym.scope_level ?? 0}</td>
+            <td>L${sym.line || '?'}:C${sym.column || '?'}</td>
+          </tr>`;
+        }
+
+        let html = `<div style="margin-bottom: 6px;"><strong>Scope:</strong> ${escapeHtml(tableDto.scope_name || 'global')} (Level ${tableDto.scope_level || 0})</div>`;
+        html += `<table class="academic-table">
+          <thead>
+            <tr>
+              <th>Identifier</th>
+              <th>Type</th>
+              <th>Level</th>
+              <th>Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows || '<tr><td colspan="4">No symbols declared.</td></tr>'}
+          </tbody>
+        </table>`;
+
+        if (tableDto.children && tableDto.children.length > 0) {
+          html += `<div style="margin-top: 8px; font-weight: 600; color: var(--text-secondary);">Nested Scopes:</div>`;
+          tableDto.children.forEach(child => {
+            html += `<div style="margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--accent-green);">`;
+            html += renderSymbolTableHtml(child);
+            html += `</div>`;
+          });
+        }
+        return html;
+      }
+
       function renderAnalysis(data) {
         if (!cy) initCytoscape();
 
-        // 1. Update Cytoscape Graph
         cy.elements().remove();
         if (data.cytoscape_graph && data.cytoscape_graph.length > 0) {
           cy.add(data.cytoscape_graph);
           runGraphLayout();
           const nodeCount = cy.nodes().length;
           const edgeCount = cy.edges().length;
-          document.getElementById("graph-stats").textContent =
-            `${nodeCount} nodes, ${edgeCount} edges`;
+          document.getElementById("graph-stats").textContent = `${nodeCount} nodes, ${edgeCount} edges`;
         } else {
-          document.getElementById("graph-stats").textContent =
-            "0 nodes, 0 edges";
+          document.getElementById("graph-stats").textContent = "0 nodes, 0 edges";
         }
 
-        // 2. Update Monaco Error Markers
         const markers = (data.diagnostics || []).map(function (d) {
           const sLine = d.line || (d.span && d.span.start_line) || 1;
           const sCol = d.column || (d.span && d.span.start_column) || 1;
@@ -1170,10 +1099,7 @@ print(unknown_variable);`,
           const eCol = (d.span && d.span.end_column) || sCol + 1;
 
           return {
-            severity:
-              d.severity === "error"
-                ? monaco.MarkerSeverity.Error
-                : monaco.MarkerSeverity.Warning,
+            severity: d.severity === "error" ? monaco.MarkerSeverity.Error : monaco.MarkerSeverity.Warning,
             startLineNumber: sLine,
             startColumn: sCol,
             endLineNumber: eLine,
@@ -1183,12 +1109,9 @@ print(unknown_variable);`,
         });
         monaco.editor.setModelMarkers(editor.getModel(), "compiler", markers);
 
-        // 3. Update Left Pane Tabs
         document.getElementById("tab-content-python").textContent =
-          data.generated_python ||
-          "# No Python code generated (syntax error or empty)";
+          data.generated_python || "# No Python code generated";
 
-        // Diagnostics Tab
         const diagCount = (data.diagnostics || []).length;
         document.getElementById("diag-count").textContent = diagCount;
         const diagTab = document.getElementById("tab-content-diagnostics");
@@ -1201,44 +1124,34 @@ print(unknown_variable);`,
             })
             .join("");
         } else {
-          diagTab.innerHTML =
-            '<span style="color: var(--accent-green)">✔ All compiler checks passed without errors.</span>';
+          diagTab.innerHTML = '<span style="color: var(--accent-green)">✔ All compiler checks passed successfully.</span>';
         }
 
-        // Symbol Table Tab
-        document.getElementById("tab-content-symbols").textContent =
-          data.symbol_table
-            ? JSON.stringify(data.symbol_table, null, 2)
-            : "No symbol table produced.";
+        const symTab = document.getElementById("tab-content-symbols");
+        if (data.symbol_table) {
+          symTab.innerHTML = renderSymbolTableHtml(data.symbol_table);
+        } else {
+          symTab.textContent = "No symbol table produced.";
+        }
 
-        // Tokens Tab
         const tokens = data.tokens || [];
         document.getElementById("token-count").textContent = tokens.length;
         const tokensTab = document.getElementById("tab-content-tokens");
         if (tokens.length > 0) {
           tokensTab.innerHTML = tokens
             .map(function (t) {
-              return `<span class="token-badge" title="${t.type} [L${t.line}:${t.column}]">${escapeHtml(t.value)} <sub style="opacity:0.7">${t.type}</sub></span>`;
+              return `<span class="token-badge" title="${t.type} [L${t.line}:${t.column}]">${escapeHtml(t.value)} <sub>${t.type}</sub></span>`;
             })
             .join("");
         } else {
           tokensTab.textContent = "No tokens recorded.";
         }
 
-        // 4. Update Status Bar
-        const errors = (data.diagnostics || []).filter(
-          (d) => d.severity === "error",
-        );
+        const errors = (data.diagnostics || []).filter((d) => d.severity === "error");
         if (errors.length > 0) {
-          updateStatus(
-            `${errors.length} syntax/semantic error(s) found`,
-            "error",
-          );
+          updateStatus(`${errors.length} error(s) detected`, "error");
         } else {
-          updateStatus(
-            `Ready • Compiled successfully in ${currentMode.toUpperCase()} mode`,
-            "ready",
-          );
+          updateStatus(`Ready • Compiled (${currentMode.toUpperCase()})`, "ready");
         }
       }
 
@@ -1263,7 +1176,6 @@ print(unknown_variable);`,
         editor.focus();
       };
 
-      // Mode toggle helpers
       function setMode(mode) {
         currentMode = mode;
         const isAst = mode === "ast";
@@ -1273,9 +1185,7 @@ print(unknown_variable);`,
         if (cstBtn) cstBtn.classList.toggle("active", !isAst);
         const graphTitle = document.getElementById("graph-title");
         if (graphTitle) {
-          graphTitle.textContent = isAst
-            ? "AST Graph Canvas (Filtered)"
-            : "CST Parse Tree Canvas (Full)";
+          graphTitle.textContent = isAst ? "AST Graph Canvas (Filtered)" : "CST Parse Tree Canvas (Full)";
         }
         compileCode();
       }
@@ -1284,7 +1194,6 @@ print(unknown_variable);`,
         setMode(currentMode === "ast" ? "cst" : "ast");
       }
 
-      // Theme toggle handler
       function toggleTheme() {
         const htmlEl = document.documentElement;
         const themeBtn = document.getElementById("btn-theme-toggle");
@@ -1302,37 +1211,20 @@ print(unknown_variable);`,
         }
       }
 
-      document
-        .getElementById("btn-theme-toggle")
-        .addEventListener("click", toggleTheme);
+      document.getElementById("btn-theme-toggle").addEventListener("click", toggleTheme);
 
-      // UI Event Handlers
       const btnAst = document.getElementById("btn-mode-ast");
-      if (btnAst) {
-        btnAst.addEventListener("click", function () {
-          setMode("ast");
-        });
-      }
+      if (btnAst) btnAst.addEventListener("click", () => setMode("ast"));
 
       const btnCst = document.getElementById("btn-mode-cst");
-      if (btnCst) {
-        btnCst.addEventListener("click", function () {
-          setMode("cst");
-        });
-      }
+      if (btnCst) btnCst.addEventListener("click", () => setMode("cst"));
 
       const btnToggle = document.getElementById("btn-toggle-mode");
-      if (btnToggle) {
-        btnToggle.addEventListener("click", toggleMode);
-      }
+      if (btnToggle) btnToggle.addEventListener("click", toggleMode);
 
-      document
-        .getElementById("btn-compile")
-        .addEventListener("click", compileCode);
+      document.getElementById("btn-compile").addEventListener("click", compileCode);
 
-      const presetSelect =
-        document.getElementById("example-select") ||
-        document.getElementById("preset-select");
+      const presetSelect = document.getElementById("example-select") || document.getElementById("preset-select");
       if (presetSelect) {
         presetSelect.addEventListener("change", function (e) {
           const val = e.target.value;
@@ -1343,22 +1235,17 @@ print(unknown_variable);`,
         });
       }
 
-      // Drawer Tabs switching
       document.querySelectorAll(".drawer-tab").forEach(function (btn) {
         btn.addEventListener("click", function () {
-          document
-            .querySelectorAll(".drawer-tab")
-            .forEach((b) => b.classList.remove("active"));
+          document.querySelectorAll(".drawer-tab").forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           const tab = btn.getAttribute("data-tab");
-          ["python", "diagnostics", "symbols", "tokens"].forEach(function (t) {
-            document.getElementById("tab-content-" + t).style.display =
-              t === tab ? "block" : "none";
+          ["python", "output", "diagnostics", "symbols", "tokens"].forEach(function (t) {
+            document.getElementById("tab-content-" + t).style.display = t === tab ? "block" : "none";
           });
         });
       });
 
-      // Resizable Splitter Logic & Responsive Auto-Sizing
       const workbench = document.getElementById("workbench");
       const paneLeft = document.getElementById("pane-left");
       const splitter = document.getElementById("splitter");
@@ -1378,19 +1265,14 @@ print(unknown_variable);`,
           const x = e.clientX - rect.left;
           let percentage = (x / rect.width) * 100;
 
-          // Clamp between 15% and 85% for usability
           if (percentage < 15) percentage = 15;
           if (percentage > 85) percentage = 85;
 
           paneLeft.style.flex = `0 0 ${percentage}%`;
           paneLeft.style.width = `${percentage}%`;
 
-          if (editor) {
-            editor.layout();
-          }
-          if (cy) {
-            cy.resize();
-          }
+          if (editor) editor.layout();
+          if (cy) cy.resize();
         });
 
         document.addEventListener("mouseup", function () {
@@ -1398,43 +1280,21 @@ print(unknown_variable);`,
             isDragging = false;
             splitter.classList.remove("dragging");
             document.body.style.cursor = "default";
-            if (editor) {
-              editor.layout();
-            }
-            if (cy) {
-              cy.resize();
-            }
+            if (editor) editor.layout();
+            if (cy) cy.resize();
           }
         });
       }
 
-      // Auto-resize listener for window size changes
       window.addEventListener("resize", function () {
-        if (editor) {
-          editor.layout();
-        }
-        if (cy) {
-          cy.resize();
-        }
+        if (editor) editor.layout();
+        if (cy) cy.resize();
       });
 
-      // Canvas overlay buttons
-      document.getElementById("btn-fit").addEventListener("click", function () {
-        if (cy) cy.fit(undefined, 35);
-      });
-      document
-        .getElementById("btn-zoom-in")
-        .addEventListener("click", function () {
-          if (cy) cy.zoom(cy.zoom() * 1.25);
-        });
-      document
-        .getElementById("btn-zoom-out")
-        .addEventListener("click", function () {
-          if (cy) cy.zoom(cy.zoom() * 0.8);
-        });
-      document
-        .getElementById("btn-relayout")
-        .addEventListener("click", runGraphLayout);
+      document.getElementById("btn-fit").addEventListener("click", () => cy && cy.fit(undefined, 35));
+      document.getElementById("btn-zoom-in").addEventListener("click", () => cy && cy.zoom(cy.zoom() * 1.25));
+      document.getElementById("btn-zoom-out").addEventListener("click", () => cy && cy.zoom(cy.zoom() * 0.8));
+      document.getElementById("btn-relayout").addEventListener("click", runGraphLayout);
     </script>
   </body>
 </html>
